@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digitad OPG — Bienvenue</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f6f6f6; color: #000; min-height: 100vh; }
+
+  /* Header */
+  .header { background: #fff; border-bottom: 1px solid #e5e5e5; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo-mark { width: 32px; height: 32px; background: #b8001c; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 14px; }
+  .header h1 { font-size: 18px; font-weight: 600; color: #000; letter-spacing: -0.3px; }
+  .header h1 span { color: #b8001c; }
+  .client-badge { background: #000; color: #fff; padding: 6px 14px; border-radius: 100px; font-size: 12px; font-weight: 500; letter-spacing: 0.02em; }
+
+  /* Container */
+  .container { max-width: 860px; margin: 0 auto; padding: 40px 40px; }
+
+  /* Progress tracker */
+  .progress-tracker { display: flex; gap: 6px; margin-bottom: 36px; flex-wrap: wrap; }
+  .step { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 100px; font-size: 12px; font-weight: 500; }
+  .step.done { background: #e8f5e9; color: #2e7d32; }
+  .step.active { background: #b8001c; color: #fff; }
+  .step.pending { background: #fff; color: #999; border: 1px solid #e5e5e5; }
+  .step-icon { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+  .step.done .step-icon { background: #2e7d32; color: #fff; }
+  .step.active .step-icon { background: rgba(255,255,255,0.25); color: #fff; }
+  .step.pending .step-icon { background: #eee; color: #999; }
+
+  /* Main card */
+  .card { background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; padding: 36px 40px; margin-bottom: 28px; }
+  .card-header { margin-bottom: 24px; }
+  .card h2 { font-size: 24px; font-weight: 700; color: #000; letter-spacing: -0.5px; margin-bottom: 8px; line-height: 1.2; }
+  .card .subtitle { color: #666; font-size: 14px; line-height: 1.6; }
+
+  /* Guide toggle */
+  .guide-section { margin-top: 20px; }
+  .guide-toggle { display: inline-flex; align-items: center; gap: 6px; background: #fff; border: 1px solid #ddd; color: #666; padding: 7px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.15s; font-family: inherit; }
+  .guide-toggle:hover { border-color: #b8001c; color: #b8001c; }
+  .guide-toggle-icon { font-style: normal; transition: transform 0.2s; display: inline-block; }
+  .guide-toggle-icon.open { transform: rotate(90deg); }
+  .guide-content { display: none; color: #444; line-height: 1.8; font-size: 14px; margin-top: 16px; padding: 20px 24px; border-radius: 8px; background: #f9f9f9; border: 1px solid #f0f0f0; }
+  .guide-content.visible { display: block; }
+  .guide-content p { margin-bottom: 12px; }
+  .guide-content p:last-child { margin-bottom: 0; }
+  .guide-content strong { color: #000; font-weight: 600; }
+
+  /* CTA */
+  .cta-row { margin-top: 32px; display: flex; align-items: center; gap: 16px; }
+  .btn-primary { display: inline-block; background: #b8001c; color: #fff; border: none; padding: 13px 32px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; font-family: inherit; letter-spacing: 0.02em; transition: all 0.2s; }
+  .btn-primary:hover { background: #9a0017; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(184,0,28,0.25); }
+  .btn-primary:active { transform: translateY(0); box-shadow: none; }
+  .cta-hint { font-size: 12px; color: #999; }
+
+  /* Stats strip */
+  .stats-strip { background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; padding: 20px 32px; display: flex; gap: 40px; flex-wrap: wrap; }
+  .stat-item { display: flex; flex-direction: column; gap: 4px; }
+  .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #999; font-weight: 600; }
+  .stat-value { font-size: 22px; font-weight: 700; color: #000; letter-spacing: -0.5px; }
+  .stat-value span { font-size: 13px; font-weight: 500; color: #666; letter-spacing: 0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo-mark">D</div>
+    <h1>Digitad <span>OPG</span></h1>
+  </div>
+  <span class="client-badge">{{ config.brand_name }} &mdash; {{ config.languages | join(' & ') | upper }}</span>
+</div>
+
+<div class="container">
+
+  <!-- Progress tracker -->
+  <nav class="progress-tracker" aria-label="Etapes du processus">
+    <div class="step done">
+      <div class="step-icon">&#10003;</div>
+      Chargement
+    </div>
+    <div class="step done">
+      <div class="step-icon">&#10003;</div>
+      Mapping mots-cles
+    </div>
+    <div class="step active">
+      <div class="step-icon">3</div>
+      Validation
+    </div>
+    <div class="step pending">
+      <div class="step-icon">4</div>
+      Extraction
+    </div>
+    <div class="step pending">
+      <div class="step-icon">5</div>
+      Reecriture IA
+    </div>
+    <div class="step pending">
+      <div class="step-icon">6</div>
+      Revision
+    </div>
+    <div class="step pending">
+      <div class="step-icon">7</div>
+      Export
+    </div>
+  </nav>
+
+  <!-- Main card -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Validation du mapping de mots-cles</h2>
+      <p class="subtitle">
+        Le mapping automatique est pret. Passez en revue chaque page et son mot-cle principal, ajustez au besoin, puis confirmez pour lancer l'extraction et la reecriture.
+      </p>
+    </div>
+
+    <!-- Guide collapsible -->
+    <div class="guide-section">
+      <button class="guide-toggle" id="guideToggle" aria-expanded="false" aria-controls="guideContent" onclick="toggleGuide()">
+        <i class="guide-toggle-icon" id="guideArrow">&#9658;</i>
+        Comment fonctionne cette etape&nbsp;?
+      </button>
+
+      <div class="guide-content" id="guideContent" role="region" aria-labelledby="guideToggle">
+        <p>
+          <strong>Ce qui s'est passe.</strong> L'outil a analyse le contenu de chaque page du site {{ config.brand_name }} et lui a associe le mot-cle le plus pertinent en fonction du volume de recherche, de la similarite semantique et des donnees Google Search Console.
+        </p>
+        <p>
+          <strong>Ce que vous devez faire.</strong> Parcourez le tableau de mapping a la prochaine etape. Pour chaque URL, verifiez que le mot-cle suggere est bien celui que vous souhaitez cibler. Vous pouvez modifier un mot-cle directement dans le champ de texte, ou exclure une page en changeant son statut a "Ignorer".
+        </p>
+        <p>
+          <strong>Conseils.</strong> Privilegiez les mots-cles avec un bon volume de recherche ET une similarite elevee (en vert). Un score de similarite inferieur a 0,5 indique que le contenu actuel de la page devra etre significativement remanie pour bien se positionner sur ce mot-cle.
+        </p>
+        <p>
+          <strong>Apres la validation.</strong> Une fois que vous cliquez sur "Confirmer la validation", l'outil extrait automatiquement les articles Wikipedia pertinents pour chaque mot-cle et lance la reecriture IA des pages. Vous pourrez suivre la progression en temps reel.
+        </p>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-row">
+      <a href="/mapping" class="btn-primary">Commencer la validation</a>
+      <span class="cta-hint">Verifiez et ajustez le mapping avant de continuer</span>
+    </div>
+  </div>
+
+  <!-- Stats strip -->
+  <div class="stats-strip" id="statsStrip">
+    <div class="stat-item">
+      <div class="stat-label">Client</div>
+      <div class="stat-value">{{ config.brand_name }}</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">Langues</div>
+      <div class="stat-value">{{ config.languages | join(', ') | upper }}</div>
+    </div>
+    <div class="stat-item" id="statPages">
+      <div class="stat-label">Pages a valider</div>
+      <div class="stat-value" id="pageCount">&mdash;</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Guide toggle — persists state in localStorage
+  (function () {
+    var STORAGE_KEY = 'opg_guide_open';
+    var isOpen = localStorage.getItem(STORAGE_KEY) === 'true';
+
+    function applyState(open) {
+      var content = document.getElementById('guideContent');
+      var arrow = document.getElementById('guideArrow');
+      var btn = document.getElementById('guideToggle');
+      if (open) {
+        content.classList.add('visible');
+        arrow.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+      } else {
+        content.classList.remove('visible');
+        arrow.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    }
+
+    window.toggleGuide = function () {
+      isOpen = !isOpen;
+      localStorage.setItem(STORAGE_KEY, isOpen ? 'true' : 'false');
+      applyState(isOpen);
+    };
+
+    applyState(isOpen);
+  })();
+
+  // Fetch page count from API
+  fetch('/api/data')
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      var mapping = d.mapping || {};
+      var total = Object.values(mapping).reduce(function (acc, arr) { return acc + arr.length; }, 0);
+      var el = document.getElementById('pageCount');
+      if (el) el.textContent = total;
+    })
+    .catch(function () {});
+</script>
+
+</body>
+</html>

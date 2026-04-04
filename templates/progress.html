@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digitad OPG &mdash; Progression</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f6f6f6; color: #000; min-height: 100vh; }
+
+  .header { background: #fff; border-bottom: 1px solid #e5e5e5; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo-mark { width: 32px; height: 32px; background: #b8001c; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px; }
+  .header h1 { font-size: 18px; font-weight: 600; color: #000; letter-spacing: -0.3px; }
+  .header h1 span { color: #b8001c; }
+  .client-badge { background: #000; color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 28px 40px; }
+
+  /* Progress tracker */
+  .progress-tracker { display: flex; gap: 6px; margin-bottom: 32px; flex-wrap: wrap; }
+  .step { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 100px; font-size: 12px; font-weight: 500; }
+  .step.done { background: #e8f5e9; color: #2e7d32; }
+  .step.active { background: #b8001c; color: #fff; }
+  .step.pending { background: #fff; color: #999; border: 1px solid #e5e5e5; }
+  .step-icon { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+  .step.done .step-icon { background: #2e7d32; color: #fff; }
+  .step.active .step-icon { background: rgba(255,255,255,0.25); color: #fff; }
+  .step.pending .step-icon { background: #eee; color: #999; }
+
+  /* Spinner */
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  .spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  /* Center card */
+  .progress-card { background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; padding: 40px 48px; text-align: center; }
+  .step-label { font-size: 22px; font-weight: 700; color: #000; letter-spacing: -0.4px; margin-bottom: 28px; min-height: 32px; }
+  .step-label.done-label { color: #2e7d32; }
+
+  .progress-bar-wrap { background: #f0f0f0; border-radius: 100px; height: 10px; overflow: hidden; margin-bottom: 14px; }
+  .progress-bar-fill { height: 100%; background: #b8001c; border-radius: 100px; transition: width 0.4s ease; }
+  .progress-bar-fill.done-fill { background: #2e7d32; }
+
+  .progress-count { font-size: 13px; color: #888; font-variant-numeric: tabular-nums; }
+  .progress-count strong { color: #000; font-weight: 600; }
+
+  /* Bottom message */
+  .terminal-message { margin-top: 28px; text-align: center; color: #888; font-size: 13px; line-height: 1.6; }
+  .terminal-message strong { color: #000; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo-mark">D</div>
+    <h1>Digitad <span>OPG</span></h1>
+  </div>
+  <span class="client-badge">En cours...</span>
+</div>
+
+<div class="container">
+
+  <div class="progress-tracker" id="progress-tracker">
+    <!-- Steps rendered by JS -->
+  </div>
+
+  <div class="progress-card">
+    <div class="step-label" id="step-label">Initialisation...</div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-bar" style="width: 0%"></div>
+    </div>
+    <div class="progress-count" id="progress-count"><strong>0</strong> / <strong>0</strong></div>
+  </div>
+
+  <p class="terminal-message">
+    Retournez &agrave; votre terminal pour la r&eacute;vision des r&eacute;&eacute;critures
+  </p>
+
+</div>
+
+<script>
+  const STEPS = [
+    { key: "load",      label: "Chargement" },
+    { key: "mapping",   label: "Mapping mots-cles" },
+    { key: "validation",label: "Validation" },
+    { key: "scraping",  label: "Extraction" },
+    { key: "rewriting", label: "Reecriture IA" },
+    { key: "review",    label: "Revision" },
+    { key: "export",    label: "Export" },
+  ];
+
+  let pollingInterval = null;
+
+  function renderTracker(completedSteps, activeStep, isDone) {
+    const tracker = document.getElementById("progress-tracker");
+    tracker.innerHTML = "";
+
+    STEPS.forEach(function(s, i) {
+      const isDoneStep = completedSteps.includes(s.key) || (isDone);
+      const isActive   = !isDone && s.key === activeStep;
+      const isPending  = !isDoneStep && !isActive;
+
+      const div = document.createElement("div");
+      div.className = "step " + (isDoneStep ? "done" : isActive ? "active" : "pending");
+
+      const iconEl = document.createElement("span");
+      iconEl.className = "step-icon";
+
+      if (isActive) {
+        // Replace icon with CSS spinner
+        const spinner = document.createElement("span");
+        spinner.className = "spinner";
+        div.appendChild(spinner);
+      } else if (isDoneStep) {
+        iconEl.innerHTML = "&#10003;";
+        div.appendChild(iconEl);
+      } else {
+        iconEl.textContent = String(i + 1);
+        div.appendChild(iconEl);
+      }
+
+      div.appendChild(document.createTextNode(" " + s.label));
+      tracker.appendChild(div);
+    });
+  }
+
+  function getLabelForStep(step) {
+    var mapping = {
+      "load":       "Chargement",
+      "mapping":    "Mapping mots-cles",
+      "validation": "Validation",
+      "scraping":   "Extraction des balises actuelles",
+      "rewriting":  "Reecriture IA",
+      "review":     "Revision",
+      "export":     "Export"
+    };
+    return mapping[step] || step || "En cours...";
+  }
+
+  function applyProgress(data) {
+    var completedSteps = data.completed_steps || [];
+    var activeStep     = data.step || null;
+    var current        = data.current || 0;
+    var total          = data.total || 0;
+    var isDone         = data.done === true;
+
+    renderTracker(completedSteps, activeStep, isDone);
+
+    var labelEl    = document.getElementById("step-label");
+    var barEl      = document.getElementById("progress-bar");
+    var countEl    = document.getElementById("progress-count");
+
+    if (isDone) {
+      labelEl.textContent = "Termine!";
+      labelEl.className   = "step-label done-label";
+      barEl.style.width   = "100%";
+      barEl.className     = "progress-bar-fill done-fill";
+      countEl.innerHTML   = "<strong>" + total + "</strong> / <strong>" + total + "</strong>";
+      stopPolling();
+    } else {
+      labelEl.textContent = data.label || getLabelForStep(activeStep);
+      labelEl.className   = "step-label";
+      barEl.className     = "progress-bar-fill";
+
+      if (total > 0) {
+        barEl.style.width = Math.round((current / total) * 100) + "%";
+        countEl.innerHTML = "<strong>" + current + "</strong> / <strong>" + total + "</strong>";
+      } else {
+        barEl.style.width = "0%";
+        countEl.innerHTML = "<strong>0</strong> / <strong>0</strong>";
+      }
+    }
+  }
+
+  function fetchProgress() {
+    fetch("/api/progress")
+      .then(function(r) { return r.json(); })
+      .then(function(data) { applyProgress(data); })
+      .catch(function() { /* ignore transient errors */ });
+  }
+
+  function stopPolling() {
+    if (pollingInterval !== null) {
+      clearInterval(pollingInterval);
+      pollingInterval = null;
+    }
+  }
+
+  // Initial render with empty state
+  renderTracker([], null, false);
+
+  // Start polling
+  fetchProgress();
+  pollingInterval = setInterval(fetchProgress, 2000);
+</script>
+</body>
+</html>

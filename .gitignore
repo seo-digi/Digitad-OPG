@@ -1,0 +1,21 @@
+# Client data (never commit)
+../**/output/
+../**/.checkpoints/
+*.xlsx
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Environment
+.env
+.env.local
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp

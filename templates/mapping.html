@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digitad OPG &mdash; Validation du mapping</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f6f6f6; color: #000; min-height: 100vh; }
+
+  .header { background: #fff; border-bottom: 1px solid #e5e5e5; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo-mark { width: 32px; height: 32px; background: #b8001c; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px; }
+  .header h1 { font-size: 18px; font-weight: 600; color: #000; letter-spacing: -0.3px; }
+  .header h1 span { color: #b8001c; }
+  .client-badge { background: #000; color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+
+  .container { max-width: 1320px; margin: 0 auto; padding: 28px 40px; }
+
+  /* Progress */
+  .progress-tracker { display: flex; gap: 6px; margin-bottom: 32px; flex-wrap: wrap; }
+  .step { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 100px; font-size: 12px; font-weight: 500; }
+  .step.done { background: #e8f5e9; color: #2e7d32; }
+  .step.active { background: #b8001c; color: #fff; }
+  .step.pending { background: #fff; color: #999; border: 1px solid #e5e5e5; }
+  .step-icon { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 10px; font-weight: 700; }
+  .step.done .step-icon { background: #2e7d32; color: #fff; }
+  .step.active .step-icon { background: rgba(255,255,255,0.25); color: #fff; }
+  .step.pending .step-icon { background: #eee; color: #999; }
+
+  /* Onboarding */
+  .onboarding { background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; padding: 28px 32px; margin-bottom: 28px; }
+  .onboarding h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; color: #000; letter-spacing: -0.4px; }
+  .onboarding .subtitle { color: #666; font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
+  .guide-toggle { background: #fff; border: 1px solid #ddd; color: #666; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.15s; font-family: inherit; }
+  .guide-toggle:hover { border-color: #b8001c; color: #b8001c; }
+  .guide-content { color: #444; line-height: 1.8; font-size: 13px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #f0f0f0; }
+  .guide-content p { margin-bottom: 10px; }
+  .guide-content strong { color: #000; font-weight: 600; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 0; margin-bottom: 0; border-bottom: 2px solid #e5e5e5; }
+  .tab { padding: 10px 24px; cursor: pointer; font-size: 13px; font-weight: 600; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; letter-spacing: 0.02em; }
+  .tab.active { color: #b8001c; border-bottom-color: #b8001c; }
+  .tab.inactive { color: #999; }
+  .tab.inactive:hover { color: #666; }
+
+  /* Toolbar */
+  .toolbar { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; }
+  .toolbar-left { display: flex; gap: 12px; align-items: center; }
+  .filter select { background: #fff; color: #000; border: 1px solid #ddd; padding: 7px 12px; border-radius: 6px; font-size: 12px; font-family: inherit; cursor: pointer; }
+  .filter select:focus { border-color: #b8001c; outline: none; }
+  .search-input { background: #fff; border: 1px solid #ddd; padding: 7px 12px; border-radius: 6px; font-size: 12px; font-family: inherit; width: 200px; }
+  .search-input:focus { border-color: #b8001c; outline: none; }
+  .search-input::placeholder { color: #bbb; }
+  .stats { font-size: 13px; color: #888; }
+  .stats strong { color: #b8001c; font-weight: 700; font-size: 15px; }
+
+  /* Table */
+  .table-wrap { background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; overflow: hidden; }
+  .mapping-table { width: 100%; border-collapse: collapse; }
+  .mapping-table thead th { padding: 12px 16px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #888; font-weight: 600; border-bottom: 1px solid #eee; background: #fafafa; }
+  .mapping-table tbody tr.data-row { border-bottom: 1px solid #f5f5f5; transition: background 0.1s; cursor: pointer; }
+  .mapping-table tbody tr.data-row:hover { background: #fafafa; }
+  .mapping-table td { padding: 10px 16px; font-size: 13px; vertical-align: middle; }
+  .url-cell { color: #666; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .kw-input { background: #f6f6f6; border: 1.5px solid #e5e5e5; color: #000; padding: 7px 10px; border-radius: 6px; width: 100%; font-size: 13px; font-family: inherit; min-width: 180px; transition: all 0.15s; }
+  .kw-input:focus { border-color: #b8001c; outline: none; box-shadow: 0 0 0 3px rgba(184,0,28,0.08); background: #fff; }
+  .kw-input.modified { border-color: #7c3aed; background: #faf5ff; }
+  .vol-cell { color: #666; text-align: right; font-variant-numeric: tabular-nums; font-size: 12px; }
+  .sim-cell { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; font-size: 12px; }
+  .sim-high { color: #16a34a; }
+  .sim-mid { color: #d97706; }
+  .sim-low { color: #dc2626; }
+  .queries-cell { color: #999; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .status-badge { padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; cursor: pointer; display: inline-block; user-select: none; transition: all 0.15s; letter-spacing: 0.02em; }
+  .status-ok { background: #e8f5e9; color: #2e7d32; }
+  .status-skip { background: #f5f5f5; color: #999; }
+  .status-modified { background: #ede9fe; color: #7c3aed; }
+  .status-low { background: #fff8e1; color: #f57f17; }
+
+  /* Expanded row */
+  .expanded-row { display: none; }
+  .expanded-row.visible { display: table-row; }
+  .expanded-row td { background: #fafafa; padding: 0; }
+  .expanded-content { padding: 20px 20px 20px 48px; }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  .detail-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: #999; margin-bottom: 4px; font-weight: 600; }
+  .detail-value { font-size: 13px; color: #000; }
+  .query-list { list-style: none; }
+  .query-list li { font-size: 12px; color: #444; padding: 2px 0; }
+  .query-list li span { color: #999; }
+  .ai-suggestion { color: #d97706; font-style: italic; }
+
+  .row-num { color: #ccc; font-size: 12px; font-weight: 500; width: 32px; }
+  .expand-arrow { display: inline-block; transition: transform 0.2s; font-size: 10px; color: #ccc; margin-right: 4px; }
+  .expanded .expand-arrow { transform: rotate(90deg); }
+
+  /* Pagination */
+  .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; padding: 20px 0; border-top: 1px solid #eee; background: #fafafa; }
+  .page-btn { background: #fff; border: 1px solid #ddd; color: #000; padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .page-btn:hover:not(:disabled) { border-color: #b8001c; color: #b8001c; }
+  .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .page-btn.active { background: #b8001c; color: #fff; border-color: #b8001c; }
+  .page-info { font-size: 12px; color: #888; margin: 0 8px; }
+
+  /* Footer */
+  .footer { display: flex; justify-content: space-between; align-items: center; margin-top: 28px; padding-top: 24px; }
+  .validated-count { font-size: 14px; color: #666; }
+  .validated-count strong { color: #b8001c; font-size: 18px; font-weight: 700; }
+  .btn-validate { background: #b8001c; color: #fff; border: none; padding: 12px 36px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; letter-spacing: 0.02em; }
+  .btn-validate:hover:not(:disabled) { background: #9a0017; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(184,0,28,0.25); }
+  .btn-validate:active:not(:disabled) { transform: translateY(0); box-shadow: none; }
+  .btn-validate:disabled { opacity: 0.7; cursor: not-allowed; transform: none; box-shadow: none; }
+  .hidden { display: none !important; }
+
+  /* Loading state */
+  .loading-overlay { text-align: center; padding: 60px 20px; color: #888; font-size: 14px; }
+  .loading-spinner { display: inline-block; width: 24px; height: 24px; border: 2px solid #e5e5e5; border-top-color: #b8001c; border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 10px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo-mark">D</div>
+    <h1>Digitad <span>OPG</span></h1>
+  </div>
+  <span class="client-badge" id="clientBadge">Chargement&hellip;</span>
+</div>
+
+<div class="container">
+
+  <div class="progress-tracker">
+    <div class="step done"><span class="step-icon">&#10003;</span> Chargement</div>
+    <div class="step done"><span class="step-icon">&#10003;</span> Mapping mots-cl&eacute;s</div>
+    <div class="step active"><span class="step-icon">3</span> Validation</div>
+    <div class="step pending"><span class="step-icon">4</span> Extraction</div>
+    <div class="step pending"><span class="step-icon">5</span> R&eacute;&eacute;criture IA</div>
+    <div class="step pending"><span class="step-icon">6</span> R&eacute;vision</div>
+    <div class="step pending"><span class="step-icon">7</span> Export</div>
+  </div>
+
+  <div class="onboarding">
+    <h2>Validation du mapping de mots-cl&eacute;s</h2>
+    <p class="subtitle">R&eacute;visez les associations mot-cl&eacute; / URL propos&eacute;es ci-dessous. Modifiez, acceptez ou ignorez chaque entr&eacute;e, puis cliquez sur Sauvegarder &amp; Valider.</p>
+    <button class="guide-toggle" onclick="toggleGuide()">Afficher le guide</button>
+    <div class="guide-content" id="guide" style="display:none;">
+      <p><strong>Ce qui a &eacute;t&eacute; fait :</strong> Votre &eacute;tude de mots-cl&eacute;s et vos donn&eacute;es Google Search Console ont &eacute;t&eacute; charg&eacute;es. Un mod&egrave;le d'IA a associ&eacute; le meilleur mot-cl&eacute; &agrave; chaque URL par similarit&eacute; s&eacute;mantique.</p>
+      <p><strong>Ce que vous devez faire :</strong> Pour chaque page, acceptez le mot-cl&eacute; propos&eacute;, tapez-en un meilleur, ou marquez la ligne comme &laquo;&nbsp;Ignorer&nbsp;&raquo;. Portez attention aux lignes <span style="color:#f57f17;font-weight:600">FAIBLE</span> confiance.</p>
+      <p><strong>Conseils :</strong> Cliquez sur une ligne pour voir les d&eacute;tails (requ&ecirc;tes GSC, scores). Consultez la colonne Requ&ecirc;tes GSC pour voir ce que les utilisateurs cherchent r&eacute;ellement.</p>
+      <p><strong>Pour terminer :</strong> Cliquez sur <strong>Sauvegarder &amp; Valider</strong>. L'outil extraira les balises actuelles, g&eacute;n&eacute;rera de nouvelles balises Title / H1 / Meta Description et exportera un fichier .xlsx avant/apr&egrave;s.</p>
+    </div>
+  </div>
+
+  <div id="tabsContainer" class="tabs"></div>
+
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <div class="filter">
+        <select id="statusFilter" onchange="applyFilters()">
+          <option value="all">Tous les statuts</option>
+          <option value="ok">OK seulement</option>
+          <option value="low">Confiance faible</option>
+          <option value="modified">Modifi&eacute;s</option>
+          <option value="skip">Ignor&eacute;s</option>
+        </select>
+      </div>
+      <input class="search-input" id="searchInput" type="text" placeholder="Rechercher une URL ou mot-cl&eacute;..." oninput="applyFilters()">
+    </div>
+    <div class="stats">Valid&eacute;s&nbsp;: <strong id="validatedCount">0</strong> / <span id="totalCount">0</span></div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="mapping-table">
+      <thead>
+        <tr>
+          <th style="width:40px">#</th>
+          <th>URL</th>
+          <th>Mot-cl&eacute; propos&eacute;</th>
+          <th style="text-align:right">Volume</th>
+          <th style="text-align:right">Sim.</th>
+          <th>Requ&ecirc;tes GSC</th>
+          <th style="text-align:center">Statut</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr><td colspan="7"><div class="loading-overlay"><span class="loading-spinner"></span>Chargement des donn&eacute;es&hellip;</div></td></tr>
+      </tbody>
+    </table>
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+  <div class="footer">
+    <div class="validated-count">Valid&eacute;s&nbsp;: <strong id="footerValidated">0</strong> / <span id="footerTotal">0</span> pages</div>
+    <button class="btn-validate" id="btnValidate" onclick="saveAndValidate()" disabled>Sauvegarder &amp; Valider &rarr;</button>
+  </div>
+
+</div>
+
+<script>
+const ITEMS_PER_PAGE = 100;
+let DATA = {};         // { lang: [rows] } — populated from API
+let availableLangs = [];
+let currentLang = 'fr';
+let currentPage = 1;
+let currentFilter = 'all';
+let rowStates = {};    // { url: { keyword, status, originalKeyword, lang } }
+let isSaving = false;
+
+// ------------------------------------------------------------------
+// Bootstrap: fetch API data, then initialise
+// ------------------------------------------------------------------
+fetch('/api/data')
+  .then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
+  .then(function(apiData) {
+    DATA = apiData.mapping || {};
+    var client = apiData.client || {};
+    var brand = client.brand_name || client.name || 'Client';
+    var langs = Object.keys(DATA).sort();
+    availableLangs = langs;
+
+    // Client badge
+    var badge = document.getElementById('clientBadge');
+    if (langs.length > 1) {
+      badge.textContent = brand + ' \u2014 ' + langs.map(function(l) { return l.toUpperCase(); }).join(' & ');
+    } else {
+      badge.textContent = brand;
+    }
+
+    // Default lang
+    if (langs.indexOf('fr') !== -1) currentLang = 'fr';
+    else if (langs.length > 0) currentLang = langs[0];
+
+    initStates();
+    renderTabs();
+    renderTable();
+    document.getElementById('btnValidate').disabled = false;
+  })
+  .catch(function(err) {
+    document.getElementById('tableBody').innerHTML =
+      '<tr><td colspan="7"><div class="loading-overlay" style="color:#dc2626">Erreur de chargement\u00a0: ' +
+      err.message + '</div></td></tr>';
+  });
+
+// ------------------------------------------------------------------
+// State initialisation
+// ------------------------------------------------------------------
+function initStates() {
+  rowStates = {};
+  for (var lang of availableLangs) {
+    var rows = DATA[lang] || [];
+    for (var item of rows) {
+      var conf = (item.confidence || 'ok').toLowerCase();
+      var status = conf === 'skip' ? 'skip' : (conf === 'low' ? 'low' : 'ok');
+      rowStates[item.url] = {
+        keyword: item.keyword || '',
+        status: status,
+        originalKeyword: item.keyword || '',
+        lang: lang
+      };
+    }
+  }
+}
+
+// ------------------------------------------------------------------
+// Tabs
+// ------------------------------------------------------------------
+function renderTabs() {
+  var container = document.getElementById('tabsContainer');
+  var html = '';
+  for (var lang of availableLangs) {
+    var count = (DATA[lang] || []).length;
+    var isActive = lang === currentLang;
+    var cls = isActive ? 'tab active' : 'tab inactive';
+    html += '<div class="' + cls + '" data-lang="' + lang + '" onclick="switchTab(this, \'' + lang + '\')">' +
+      lang.toUpperCase() + ' (' + count + ' pages)</div>';
+  }
+  container.innerHTML = html;
+}
+
+function switchTab(el, lang) {
+  document.querySelectorAll('.tab').forEach(function(t) {
+    t.classList.remove('active');
+    t.classList.add('inactive');
+  });
+  el.classList.remove('inactive');
+  el.classList.add('active');
+  currentLang = lang;
+  currentPage = 1;
+  renderTable();
+}
+
+// ------------------------------------------------------------------
+// Filtering
+// ------------------------------------------------------------------
+function getFilteredData() {
+  var data = DATA[currentLang] || [];
+  var search = document.getElementById('searchInput').value.toLowerCase();
+  var filter = currentFilter;
+  return data.filter(function(item) {
+    var state = rowStates[item.url];
+    if (!state) return false;
+    if (filter !== 'all') {
+      if (filter === 'modified' && state.status !== 'modified') return false;
+      if (filter === 'ok' && state.status !== 'ok') return false;
+      if (filter === 'low' && state.status !== 'low') return false;
+      if (filter === 'skip' && state.status !== 'skip') return false;
+    }
+    if (search) {
+      var url = item.url.toLowerCase();
+      var kw = (state.keyword || '').toLowerCase();
+      if (!url.includes(search) && !kw.includes(search)) return false;
+    }
+    return true;
+  });
+}
+
+function applyFilters() {
+  currentFilter = document.getElementById('statusFilter').value;
+  currentPage = 1;
+  renderTable();
+}
+
+// ------------------------------------------------------------------
+// Table rendering
+// ------------------------------------------------------------------
+function renderTable() {
+  var filtered = getFilteredData();
+  var totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  if (currentPage > totalPages) currentPage = totalPages;
+  var start = (currentPage - 1) * ITEMS_PER_PAGE;
+  var pageData = filtered.slice(start, start + ITEMS_PER_PAGE);
+
+  var tbody = document.getElementById('tableBody');
+  var html = '';
+
+  // Derive domain prefix for URL shortening — strip longest common http(s)://... prefix
+  function shortUrl(url) {
+    return url.replace(/^https?:\/\/[^/]+/, '') || '/';
+  }
+
+  // Build top-queries summary string for the GSC cell
+  function queriesSummary(topQueries) {
+    if (!topQueries || topQueries.length === 0) return '';
+    return topQueries.map(function(tq) { return tq.query || tq.q || ''; }).filter(Boolean).join(', ');
+  }
+
+  pageData.forEach(function(item, idx) {
+    var globalIdx = start + idx + 1;
+    var state = rowStates[item.url];
+    var short = shortUrl(item.url);
+    var sim = typeof item.similarity === 'number' ? item.similarity : 0;
+    var simClass = sim >= 0.9 ? 'sim-high' : (sim >= 0.7 ? 'sim-mid' : 'sim-low');
+    var statusClass = 'status-' + state.status;
+    var statusLabel = {ok: 'OK', skip: 'Ignorer', modified: 'Modifi\u00e9', low: 'Faible'}[state.status] || state.status;
+    var inputClass = state.status === 'modified' ? 'kw-input modified' : 'kw-input';
+    var qSummary = queriesSummary(item.top_queries);
+    var vol = (item.volume && item.volume > 0) ? Number(item.volume).toLocaleString('fr-CA') : '-';
+    var safeUrl = item.url.replace(/'/g, "\\'");
+
+    html += '<tr class="data-row" onclick="toggleExpand(\'' + safeUrl + '\')">';
+    html += '<td class="row-num"><span class="expand-arrow" id="arrow-' + globalIdx + '">\u25BA</span>' + globalIdx + '</td>';
+    html += '<td class="url-cell" title="' + short + '">' + short + '</td>';
+    html += '<td><input class="' + inputClass + '" value="' + escHtml(state.keyword) + '" ' +
+            'oninput="onKeywordEdit(this, \'' + safeUrl + '\')" onclick="event.stopPropagation()"></td>';
+    html += '<td class="vol-cell">' + vol + '</td>';
+    html += '<td class="sim-cell ' + simClass + '">' + sim.toFixed(2) + '</td>';
+    html += '<td class="queries-cell" title="' + escHtml(qSummary) + '">' + escHtml(qSummary) + '</td>';
+    html += '<td style="text-align:center"><span class="status-badge ' + statusClass + '" ' +
+            'onclick="event.stopPropagation(); cycleStatus(\'' + safeUrl + '\')">' + statusLabel + '</span></td>';
+    html += '</tr>';
+
+    // Expanded detail row
+    var relScore = item.relevance_score;
+    var oppScore = item.opportunity_score;
+    var aiStatus = item.ai_status || item.aiStatus || 'OK';
+    var aiSuggestion = item.ai_suggestion || item.aiSuggestion || '';
+    var position = item.position || '-';
+
+    html += '<tr class="expanded-row" id="expand-' + globalIdx + '"><td colspan="7"><div class="expanded-content"><div class="detail-grid">';
+    html += '<div><div class="detail-label">URL compl\u00e8te</div><div class="detail-value" style="word-break:break-all">' + escHtml(item.url) + '</div></div>';
+    html += '<div><div class="detail-label">Score de pertinence</div><div class="detail-value">' +
+            (relScore != null ? Number(relScore).toLocaleString('fr-CA') : '-') + '</div></div>';
+    html += '<div><div class="detail-label">Score d\'opportunit\u00e9</div><div class="detail-value">' +
+            (oppScore != null ? Number(oppScore).toLocaleString('fr-CA') : '-') + '</div></div>';
+    html += '<div><div class="detail-label">Requ\u00eates GSC principales</div><ul class="query-list">';
+    (item.top_queries || []).slice(0, 3).forEach(function(tq) {
+      var q = tq.query || tq.q || '';
+      var imp = tq.impressions != null ? tq.impressions : (tq.imp != null ? tq.imp : null);
+      var ctr = tq.ctr != null ? tq.ctr : null;
+      var detail = [];
+      if (imp != null) detail.push(Number(imp).toLocaleString('fr-CA') + '\u00a0imp');
+      if (ctr != null) detail.push(ctr + '%\u00a0CTR');
+      html += '<li>' + escHtml(q) + (detail.length ? ' <span>(' + detail.join(', ') + ')</span>' : '') + '</li>';
+    });
+    html += '</ul></div>';
+    html += '<div><div class="detail-label">Validation IA</div><div class="detail-value" style="color:' +
+            (aiStatus === 'OK' ? '#16a34a' : '#d97706') + '">' + escHtml(aiStatus) + '</div></div>';
+    html += '<div><div class="detail-label">Position moyenne</div><div class="detail-value">' + escHtml(String(position)) + '</div></div>';
+    if (aiSuggestion) {
+      html += '<div style="grid-column:1/-1"><div class="detail-label">Suggestion IA</div><div class="ai-suggestion">' + escHtml(aiSuggestion) + '</div></div>';
+    }
+    html += '</div></div></td></tr>';
+  });
+
+  if (pageData.length === 0) {
+    html = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#999;font-size:13px">Aucun r\u00e9sultat</td></tr>';
+  }
+
+  tbody.innerHTML = html;
+  renderPagination(filtered.length, totalPages);
+  updateCounts();
+}
+
+// ------------------------------------------------------------------
+// Pagination
+// ------------------------------------------------------------------
+function renderPagination(totalItems, totalPages) {
+  var pag = document.getElementById('pagination');
+  if (totalPages <= 1) { pag.innerHTML = ''; return; }
+
+  var html = '<button class="page-btn" onclick="goPage(' + (currentPage - 1) + ')" ' +
+             (currentPage <= 1 ? 'disabled' : '') + '>\u00ab\u00a0Pr\u00e9c\u00e9dent</button>';
+
+  var maxButtons = 7;
+  var startP = Math.max(1, currentPage - 3);
+  var endP = Math.min(totalPages, startP + maxButtons - 1);
+  if (endP - startP < maxButtons - 1) startP = Math.max(1, endP - maxButtons + 1);
+
+  if (startP > 1) html += '<button class="page-btn" onclick="goPage(1)">1</button><span class="page-info">\u2026</span>';
+  for (var p = startP; p <= endP; p++) {
+    html += '<button class="page-btn' + (p === currentPage ? ' active' : '') + '" onclick="goPage(' + p + ')">' + p + '</button>';
+  }
+  if (endP < totalPages) {
+    html += '<span class="page-info">\u2026</span><button class="page-btn" onclick="goPage(' + totalPages + ')">' + totalPages + '</button>';
+  }
+  html += '<button class="page-btn" onclick="goPage(' + (currentPage + 1) + ')" ' +
+          (currentPage >= totalPages ? 'disabled' : '') + '>Suivant\u00a0\u00bb</button>';
+  html += '<span class="page-info">' + totalItems + '\u00a0r\u00e9sultats</span>';
+  pag.innerHTML = html;
+}
+
+function goPage(p) {
+  currentPage = p;
+  renderTable();
+  window.scrollTo({ top: 300, behavior: 'smooth' });
+}
+
+// ------------------------------------------------------------------
+// Row interaction
+// ------------------------------------------------------------------
+function toggleExpand(url) {
+  // Find row by iterating — ids use globalIdx, not url, to avoid URL special chars
+  var allExpanded = document.querySelectorAll('.expanded-row');
+  var allDataRows = document.querySelectorAll('.data-row');
+  // Match by data-row sibling approach: find the data-row whose input value matches
+  var dataRows = document.querySelectorAll('.data-row');
+  for (var i = 0; i < dataRows.length; i++) {
+    var input = dataRows[i].querySelector('input.kw-input');
+    var urlCell = dataRows[i].querySelector('.url-cell');
+    // Identify by the url stored in rowStates matching the short version
+    // We identify by checking the arrow id; globalIdx = i+1 from start of page
+    var expandId = 'expand-' + (i + 1);
+    // We compare the url title
+    if (urlCell && url.endsWith(urlCell.getAttribute('title'))) {
+      var row = document.getElementById(expandId);
+      if (row) {
+        row.classList.toggle('visible');
+        // Toggle arrow rotation
+        var arrow = document.getElementById('arrow-' + (i + 1));
+        if (arrow) arrow.style.transform = row.classList.contains('visible') ? 'rotate(90deg)' : '';
+      }
+      return;
+    }
+  }
+}
+
+function cycleStatus(url) {
+  var state = rowStates[url];
+  if (!state) return;
+  var cycle = ['ok', 'skip'];
+  var idx = cycle.indexOf(state.status);
+  if (idx === -1) idx = 0;
+  state.status = cycle[(idx + 1) % cycle.length];
+  renderTable();
+}
+
+function onKeywordEdit(input, url) {
+  var state = rowStates[url];
+  if (!state) return;
+  state.keyword = input.value;
+  if (input.value !== state.originalKeyword) {
+    state.status = 'modified';
+    input.classList.add('modified');
+    input.style.borderColor = '#7c3aed';
+    input.style.background = '#faf5ff';
+  } else {
+    state.status = 'ok';
+    input.classList.remove('modified');
+    input.style.borderColor = '';
+    input.style.background = '';
+  }
+  updateCounts();
+}
+
+// ------------------------------------------------------------------
+// Counts
+// ------------------------------------------------------------------
+function updateCounts() {
+  var validated = 0, total = 0;
+  for (var url in rowStates) {
+    total++;
+    var s = rowStates[url].status;
+    if (s === 'ok' || s === 'modified') validated++;
+  }
+  document.getElementById('validatedCount').textContent = validated;
+  document.getElementById('totalCount').textContent = total;
+  document.getElementById('footerValidated').textContent = validated;
+  document.getElementById('footerTotal').textContent = total;
+}
+
+// ------------------------------------------------------------------
+// Guide toggle
+// ------------------------------------------------------------------
+function toggleGuide() {
+  var g = document.getElementById('guide');
+  var btn = document.querySelector('.guide-toggle');
+  if (g.style.display === 'none') {
+    g.style.display = 'block';
+    btn.textContent = 'Masquer le guide';
+  } else {
+    g.style.display = 'none';
+    btn.textContent = 'Afficher le guide';
+  }
+}
+
+// ------------------------------------------------------------------
+// Save & Validate — POST to /api/validate
+// ------------------------------------------------------------------
+function saveAndValidate() {
+  if (isSaving) return;
+  isSaving = true;
+
+  var btn = document.getElementById('btnValidate');
+  btn.textContent = 'Sauvegarde en cours\u2026';
+  btn.disabled = true;
+
+  var payload = { mapping: {} };
+  for (var url in rowStates) {
+    var s = rowStates[url];
+    payload.mapping[url] = { keyword: s.keyword, lang: s.lang, status: s.status };
+  }
+
+  fetch('/api/validate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+    .then(function(r) {
+      return r.json().then(function(body) { return { ok: r.ok, status: r.status, body: body }; });
+    })
+    .then(function(res) {
+      if (res.ok) {
+        window.location.href = '/progress';
+      } else {
+        var msg = (res.body && res.body.error) ? res.body.error : 'Erreur ' + res.status;
+        alert('Erreur\u00a0: ' + msg);
+        btn.textContent = 'Sauvegarder & Valider \u2192';
+        btn.disabled = false;
+        isSaving = false;
+      }
+    })
+    .catch(function(err) {
+      alert('Erreur r\u00e9seau\u00a0: ' + err.message);
+      btn.textContent = 'Sauvegarder & Valider \u2192';
+      btn.disabled = false;
+      isSaving = false;
+    });
+}
+
+// ------------------------------------------------------------------
+// HTML escape helper
+// ------------------------------------------------------------------
+function escHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+</script>
+
+</body>
+</html>
