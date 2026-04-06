@@ -28,10 +28,11 @@ pip3 install -r requirements.txt
 cp .env.example .env
 ```
 
-Ouvrez le fichier `.env` avec un editeur de texte et remplacez `sk-ant-api03-VOTRE-CLE-ICI` par votre vraie cle API Anthropic:
+Ouvrez le fichier `.env` avec un editeur de texte et remplacez `sk-ant-api03-VOTRE-CLE-ICI` par votre vraie cle API LITE LLM:
 
 ```
-ANTHROPIC_API_KEY=sk-ant-api03-votre-vraie-cle-ici
+LITELLM_API_KEY=sk-XXXXXXXXX-XXXXX
+LITELLM_BASE_URL=https://litellm.XXXXX.ca/
 ```
 
 > **IMPORTANT:** Ne partagez jamais votre cle API. Le fichier `.env` est ignore par Git et ne sera jamais committe.
