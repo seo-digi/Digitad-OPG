@@ -48,7 +48,7 @@ Pour chaque client, preparez ces 2 fichiers:
 | Fichier | Format | Description |
 |---------|--------|-------------|
 | Etude de mots-cles | `.xlsx` (Excel) | L'etude de marche exportee de Google Sheets, avec les onglets FR et/ou EN |
-| Donnees Search Console | `.csv` | Export CSV de SEO Gets (3 derniers mois, non-branded) |
+| Donnees Search Console | `.csv` | Export CSV de SEO Gets (3 derniers mois, non-branded) | Pages
 
 ### Lancer l'outil
 
