@@ -13,12 +13,6 @@ L'outil croise les donnees d'une etude de mots-cles avec les performances Google
 - **Python 3.9+** installe sur votre ordinateur
 - **Un compte Anthropic** avec une cle API (demandez a votre responsable)
 
-### 2. Cloner le repo
-
-```bash
-git clone https://github.com/digitad/optimization-plan.git
-cd optimization-plan
-```
 
 ### 3. Installer les dependances
 
