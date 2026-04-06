@@ -52,9 +52,8 @@ Pour chaque client, preparez ces 2 fichiers:
 
 ### Lancer l'outil
 
-```bash
-cd optimization-plan
-python3 cli.py
+```
+cd Digitad-OPG && python3 cli.py
 ```
 
 ### Le flow etape par etape
