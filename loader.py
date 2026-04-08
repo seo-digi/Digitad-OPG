@@ -42,7 +42,7 @@ def _matches_labels(val, labels):
 
 def load_gsc_csv(csv_path):
     """Load SEO Gets CSV, normalize column names and URLs."""
-    df = pd.read_csv(csv_path)
+    df = pd.read_csv(csv_path, on_bad_lines='skip')
     # Normalize column names to lowercase with underscores
     df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
     # Ensure numeric types

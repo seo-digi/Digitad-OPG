@@ -104,8 +104,8 @@ Return a JSON array. Each element:
 
 
 def build_client_config(brand_name, languages, en_url_pattern="/en/",
-                        model_validation="claude-haiku-4-5-20251001",
-                        model_rewriting="claude-sonnet-4-20250514"):
+                        model_validation="claude-haiku-4-5",
+                        model_rewriting="claude-sonnet-4-5"):
     """Build a client configuration dict."""
     return {
         "brand_name": brand_name,

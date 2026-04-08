@@ -16,6 +16,9 @@ def aggregate_gsc_by_url(gsc_df):
 
 def get_top_queries_per_url(gsc_df, n=10):
     """Get top N queries per URL by impressions."""
+    missing = [c for c in ["query", "impressions", "ctr"] if c not in gsc_df.columns]
+    if missing:
+        raise KeyError(f"Missing columns in GSC CSV: {missing}. Found: {gsc_df.columns.tolist()}")
     result = {}
     for page, group in gsc_df.groupby("page"):
         top = group.nlargest(n, "impressions")
